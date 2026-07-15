@@ -39,10 +39,10 @@ if lsof -ti:3000 >/dev/null 2>&1; then
     sleep 1
 fi
 
-# Kill any existing Python MCP servers
-if pgrep -f "server.py" >/dev/null 2>&1; then
+# Kill any existing Node MCP servers
+if pgrep -f "node server.js" >/dev/null 2>&1; then
     echo "  Killing existing MCP server processes..."
-    pkill -9 -f "server.py" || true
+    pkill -9 -f "node server.js" || true
     sleep 1
 fi
 
@@ -68,13 +68,13 @@ cleanup() {
 
 trap cleanup SIGINT SIGTERM
 
-# Start FastMCP server
-echo "Starting FastMCP server..."
+# Start MCP server
+echo "Starting MCP server..."
 cd "$SCRIPT_DIR"
 
-python3 server.py > /tmp/claude-code-bridge.log 2>&1 &
+node server.js > /tmp/claude-code-bridge.log 2>&1 &
 SERVER_PID=$!
-echo "✓ FastMCP server started (PID: $SERVER_PID)"
+echo "✓ MCP server started (PID: $SERVER_PID)"
 echo "  Logs: /tmp/claude-code-bridge.log"
 
 # Give the server time to start

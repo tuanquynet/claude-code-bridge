@@ -57,32 +57,16 @@ if [[ "$(uname)" != "Linux" ]]; then
 fi
 
 # ============================================
-# Section 1: Check/Install uv
+# Section 1: Check/Install Node.js
 # ============================================
 echo ""
-info "Checking for uv package manager..."
+info "Checking for Node.js..."
 
-if check_command uv; then
-    success "uv is installed ($(uv --version 2>/dev/null | head -1))"
+if check_command node; then
+    success "Node.js is installed ($(node --version 2>/dev/null | head -1))"
 else
-    warn "uv is not installed"
-    if ask_yes_no "Install uv?"; then
-        info "Installing uv..."
-        curl -LsSf https://astral.sh/uv/install.sh | sh
-
-        # Add to PATH for this session
-        export PATH="$HOME/.local/bin:$PATH"
-
-        if check_command uv; then
-            success "uv installed successfully"
-        else
-            error "Failed to install uv. Please install manually: https://docs.astral.sh/uv/"
-            exit 1
-        fi
-    else
-        error "uv is required. Please install it manually."
-        exit 1
-    fi
+    error "Node.js is not installed. Please install Node.js 18+ manually: https://nodejs.org/"
+    exit 1
 fi
 
 # ============================================
@@ -289,15 +273,15 @@ EOF
 fi
 
 # ============================================
-# Section 6: Install Python dependencies
+# Section 6: Install Node.js dependencies
 # ============================================
 echo ""
-info "Installing Python dependencies..."
+info "Installing Node.js dependencies..."
 
 cd "$SCRIPT_DIR"
-uv sync
+npm install
 
-success "Python dependencies installed"
+success "Node.js dependencies installed"
 
 # ============================================
 # Section 7: Systemd Service (Optional)

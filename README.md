@@ -1,7 +1,7 @@
 # Claude Code Bridge
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Node.js 18+](https://img.shields.io/badge/node-18+-green.svg)](https://nodejs.org/)
 [![MCP](https://img.shields.io/badge/MCP-2025--03--26-green.svg)](https://modelcontextprotocol.io/)
 
 Bridge [Claude.ai](https://claude.ai) to your local [Claude Code](https://claude.ai/code) CLI. Control your laptop from your phone or any browser.
@@ -22,7 +22,7 @@ Bridge [Claude.ai](https://claude.ai) to your local [Claude Code](https://claude
          │
          ▼
 ┌─────────────────┐
-│   This Server   │  FastMCP → Claude Code CLI
+│   This Server   │  Node MCP → Claude Code CLI
 │   (Your PC)     │  Executes tasks locally
 └─────────────────┘
 ```
@@ -44,25 +44,26 @@ cd claude-code-bridge
 ```
 
 The setup script will:
+
 1. Install dependencies (uv, claude, cloudflared)
 2. Configure Cloudflare tunnel
 3. Optionally set up auto-start
 
 ## Available Tools
 
-| Tool | Description |
-|------|-------------|
+| Tool              | Description                         |
+| ----------------- | ----------------------------------- |
 | `run_claude_code` | Execute tasks using Claude Code CLI |
-| `list_directory` | List files and directories |
-| `read_file` | Read file contents |
-| `write_file` | Write content to files |
-| `execute_command` | Run shell commands |
-| `list_sessions` | List Claude Code sessions |
+| `list_directory`  | List files and directories          |
+| `read_file`       | Read file contents                  |
+| `write_file`      | Write content to files              |
+| `execute_command` | Run shell commands                  |
+| `list_sessions`   | List Claude Code sessions           |
 
 ## Requirements
 
 - Linux (Ubuntu/Debian)
-- Python 3.10+
+- Node.js 18+
 - Cloudflare account with a domain
 
 ## Manual Setup
@@ -72,8 +73,8 @@ If you prefer manual setup over the wizard:
 ### 1. Install Dependencies
 
 ```bash
-# uv package manager
-curl -LsSf https://astral.sh/uv/install.sh | sh
+# Node.js 18+ (via nvm, or your distro's package manager)
+curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash && nvm install --lts
 
 # Claude Code CLI
 curl -fsSL https://claude.ai/install.sh | bash
@@ -106,10 +107,10 @@ ingress:
   - service: http_status:404
 ```
 
-### 3. Install Python Dependencies
+### 3. Install Node.js Dependencies
 
 ```bash
-uv sync
+npm install
 ```
 
 ### 4. Start the Server
@@ -140,10 +141,10 @@ Once connected, ask Claude.ai things like:
 
 ```
 claude-code-bridge/
-├── server.py      # MCP server (FastMCP)
+├── server.js      # MCP server (@modelcontextprotocol/sdk + Express)
 ├── start.sh       # Start server + tunnel
 ├── setup.sh       # Setup wizard
-├── pyproject.toml # Project config
+├── package.json   # Project config
 └── LICENSE        # MIT license
 ```
 
@@ -162,15 +163,50 @@ Ctrl+C
 sudo systemctl stop claude-code-bridge
 
 # Manual stop
-pkill -f server.py
+pkill -f "node server.js"
 pkill cloudflared
 ```
 
+## Permissions
+
+By default the bridge exposes unrestricted shell and filesystem access. To
+restrict it — Claude-Code style — create a `permissions.json` next to
+`server.js` (copy `permissions.example.json` to start):
+
+```json
+{
+  "commands": {
+    "allow": ["git status:*", "npm run:*", "ls:*"],
+    "deny": ["rm:*", "sudo:*"]
+  },
+  "directories": {
+    "allow": ["~/projects", "/tmp/cc-bridge"]
+  }
+}
+```
+
+- **`commands`** — governs `execute_command`. Each chained segment (`&&`, `;`,
+  `|`, …) must match an `allow` rule and no `deny` rule; deny always wins.
+  Rule syntax matches Claude Code: `prefix:*` (prefix match), `*` (glob), or an
+  exact string. Command substitution (`$(...)`, backticks) is rejected while an
+  allowlist is active.
+- **`directories`** — every path passed to `read_file` / `write_file` /
+  `list_directory`, and any `working_dir`, must resolve inside one of these
+  roots (symlinks and `..` traversal are resolved before checking). `~` expands
+  to your home directory.
+- **Omitting a section leaves it unrestricted.** No `permissions.json` at all
+  == fully permissive (original behavior).
+
+Point at a different file with `BRIDGE_PERMISSIONS_FILE=/path/to/perms.json`.
+The server prints the active policy on startup.
+
 ## Security
 
-- Server binds to `localhost:3000` only
+- Binds to `127.0.0.1:3000` by default (override with `BRIDGE_HOST`)
+- DNS-rebinding protection: only the local host and the configured tunnel
+  domain are accepted in the `Host` header (extend via `BRIDGE_ALLOWED_HOSTS`)
 - External access through Cloudflare tunnel (HTTPS)
-- Claude Code runs with your user permissions
+- Claude Code runs with your user permissions — scope it with `permissions.json`
 - No authentication by default (tunnel URL is the secret)
 
 ## License
