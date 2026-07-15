@@ -1,0 +1,31 @@
+{
+  "name": "claude-code-bridge",
+  "version": "0.1.0",
+  "description": "MCP server that bridges Claude.ai to your local Claude Code CLI",
+  "license": "MIT",
+  "author": "Quy Tran",
+  "type": "module",
+  "main": "server.js",
+  "bin": {
+    "claude-code-bridge": "server.js"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "claude",
+    "mcp",
+    "anthropic",
+    "ai",
+    "cli",
+    "bridge"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "express": "^5.1.0",
+    "zod": "^3.25.0"
+  }
+}

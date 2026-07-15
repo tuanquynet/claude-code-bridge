@@ -1,0 +1,17 @@
+{
+  "commands": {
+    "allow": [
+      "git status:*",
+      "git diff:*",
+      "git log:*",
+      "ls:*",
+      "cat:*",
+      "npm run:*",
+      "node:*"
+    ],
+    "deny": ["rm:*", "sudo:*", "shutdown:*", "reboot:*"]
+  },
+  "directories": {
+    "allow": ["~/projects", "/tmp/cc-bridge"]
+  }
+}
