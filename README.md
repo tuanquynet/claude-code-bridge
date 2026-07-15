@@ -82,7 +82,41 @@ curl -fsSL https://claude.ai/install.sh | bash
 # cloudflared (Debian/Ubuntu)
 curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o /tmp/cloudflared.deb
 sudo dpkg -i /tmp/cloudflared.deb
+
+# cloudflared (macOS)
+brew install cloudflared
 ```
+
+#### Installing cloudflared on macOS
+
+The easiest route is [Homebrew](https://brew.sh):
+
+```bash
+brew install cloudflared
+cloudflared --version   # verify
+```
+
+To keep it up to date later: `brew upgrade cloudflared`.
+
+If you don't use Homebrew, download the binary directly (pick the arch that
+matches your Mac — `arm64` for Apple Silicon, `amd64` for Intel):
+
+```bash
+# Apple Silicon (M1/M2/M3)
+curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-arm64.tgz -o /tmp/cloudflared.tgz
+
+# Intel
+# curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-amd64.tgz -o /tmp/cloudflared.tgz
+
+tar -xzf /tmp/cloudflared.tgz -C /tmp
+sudo mv /tmp/cloudflared /usr/local/bin/
+sudo chmod +x /usr/local/bin/cloudflared
+cloudflared --version
+```
+
+> On first run macOS Gatekeeper may block the binary. Allow it via
+> **System Settings → Privacy & Security → "Open Anyway"**, or run
+> `xattr -d com.apple.quarantine /usr/local/bin/cloudflared`.
 
 ### 2. Configure Cloudflare Tunnel
 
